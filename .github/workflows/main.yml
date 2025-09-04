@@ -28,7 +28,7 @@ jobs:
           jar cfe build/app.jar com.exemplo.Main -C build .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-jar
           path: build/app.jar
