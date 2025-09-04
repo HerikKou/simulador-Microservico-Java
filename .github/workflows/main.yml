@@ -51,7 +51,16 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             mkdir -p ~/app
+
+            # Para o app anterior, se estiver rodando
+            PID=$(pgrep -f 'java -jar ~/app/app.jar' || true)
+            if [ -n "$PID" ]; then
+              echo "Parando app anterior (PID $PID)..."
+              kill -9 $PID
+            fi
+
+            # Move o novo JAR e inicia
             mv app-jar/app.jar ~/app/app.jar
             nohup java -jar ~/app/app.jar > ~/app/log.txt 2>&1 &
-            echo "Deploy concluído com sucesso!"
 
+            echo "Deploy concluído com sucesso!"
