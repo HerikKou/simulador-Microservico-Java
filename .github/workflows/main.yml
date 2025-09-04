@@ -1,12 +1,9 @@
 name: CI/CD
+
 on:
   push:
     branches:
       - main
-  # pull_request:
-  #   branches:
-  #     - main
-
 
 jobs:
   build:
@@ -22,11 +19,12 @@ jobs:
           java-version: '17'
 
       - name: Compilar arquivos
-        run: javac -d build $(find src -name "*.java")
+        run: |
+          mkdir -p build
+          javac -d build $(find src -name "*.java")
 
-      - name: criar arquivo jar
+      - name: Criar arquivo JAR
         run: jar cfe build/app.jar com.exemplo.Main -C build .
-
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -44,17 +42,16 @@ jobs:
         with:
           name: app-jar
 
-      - name: deploy
-        uses : appleboy/ssh-action@v0.1.6
+      - name: Deploy
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_HOST }}
-          key: mkdir -p ~/app && mv app-jar/app.jar ~/app/app.jar && nohup java -jar ~/app/app.jar > ~/app/log.txt 2>&1 & 
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            mkdir -p ~/app && mv app-jar/app.jar ~/app/app.jar && nohup java -jar ~/app/app.jar > ~/app/log.txt 2>&1 &
-          run:
-            echo "Deploy concluído com sucesso!" 
-
-
+            mkdir -p ~/app
+            mv app-jar/app.jar ~/app/app.jar
+            nohup java -jar ~/app/app.jar > ~/app/log.txt 2>&1 &
+            echo "Deploy concluído com sucesso!"
 
