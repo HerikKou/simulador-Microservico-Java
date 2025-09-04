@@ -24,7 +24,8 @@ jobs:
           javac -d build $(find src -name "*.java")
 
       - name: Criar arquivo JAR
-        run: jar cfe build/app.jar com.exemplo.Main -C build .
+        run: |
+          jar cfe build/app.jar com.exemplo.Main -C build .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -42,7 +43,7 @@ jobs:
         with:
           name: app-jar
 
-      - name: Deploy
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -64,3 +65,4 @@ jobs:
             nohup java -jar ~/app/app.jar > ~/app/log.txt 2>&1 &
 
             echo "Deploy concluído com sucesso!"
+
