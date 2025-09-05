@@ -40,21 +40,7 @@ jobs:
       - name: Run JAR
         run: java -cp Main.jar Main
 
-      # 6️⃣ Build da imagem Docker
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/java-app:latest .
-
-      # 7️⃣ Login no Docker Hub
-      - name: Docker Login
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # 8️⃣ Push da imagem Docker
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/java-app:latest
-
+     
       # 9️⃣ Deploy no servidor via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.9
