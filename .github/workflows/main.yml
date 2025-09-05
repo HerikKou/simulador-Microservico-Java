@@ -40,8 +40,7 @@ jobs:
       - name: Run JAR
         run: java -cp Main.jar Main
 
-     
-      # 9️⃣ Deploy no servidor via SSH
+      # 6️⃣ Deploy direto no servidor via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.9
         with:
@@ -50,10 +49,14 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            cd /caminho/do/projeto/no/servidor
-            # Atualizar JAR
-            cp /tmp/Main.jar ./Main.jar
-            # Parar app antigo
+            # Criar a pasta da aplicação caso não exista
+            mkdir -p /home/usuario/java-app
+
+            # Copiar o JAR do runner para o servidor
+            scp $GITHUB_WORKSPACE/Main.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/usuario/java-app/Main.jar
+
+            # Parar aplicação antiga (se estiver rodando)
             pkill -f Main.jar || true
+
             # Rodar novo JAR em background
-            nohup java -cp Main.jar Main > app.log 2>&1 &
+            nohup java -cp /home/usuario/java-app/Main.jar Main > /home/usuario/java-app/app.log 2>&1 &
