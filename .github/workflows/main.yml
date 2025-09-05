@@ -36,27 +36,4 @@ jobs:
           jar cfe ../Main.jar Main $(find . -name "*.class")
           cd ..
 
-      # 5️⃣ Testar o JAR localmente
-      - name: Run JAR
-        run: java -cp Main.jar Main
-
-      # 6️⃣ Deploy direto no servidor via SSH
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.9
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          script: |
-            # Criar a pasta da aplicação caso não exista
-            mkdir -p /home/usuario/java-app
-
-            # Copiar o JAR do runner para o servidor
-            scp $GITHUB_WORKSPACE/Main.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/usuario/java-app/Main.jar
-
-            # Parar aplicação antiga (se estiver rodando)
-            pkill -f Main.jar || true
-
-            # Rodar novo JAR em background
-            nohup java -cp /home/usuario/java-app/Main.jar Main > /home/usuario/java-app/app.log 2>&1 &
+      
