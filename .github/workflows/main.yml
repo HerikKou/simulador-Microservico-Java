@@ -11,31 +11,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Puxar o código
+      # 1️⃣ Checkout do código
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Configurar JDK 17
+      # 2️⃣ Setup JDK 17
       - name: Setup JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3️⃣ Compilar os arquivos Java
+      # 3️⃣ Compilar todas as classes respeitando pacotes
       - name: Compile Java sources
         run: |
+          mkdir -p out
           find . -name "*.java" > sources.txt
-          javac @sources.txt
+          javac -d out @sources.txt
 
-      # 4️⃣ Criar o .jar executável
+      # 4️⃣ Criar o JAR executável
       - name: Package into JAR
         run: |
-          jar cfe Main.jar Main $(find . -name "*.class")
+          cd out
+          jar cfe ../Main.jar Main $(find . -name "*.class")
+          cd ..
 
-      # 5️⃣ Testar a aplicação (opcional)
-      - name: Run Application
-        run: java -jar Main.jar
+      # 5️⃣ Testar o JAR localmente
+      - name: Run JAR
+        run: java -cp Main.jar Main
 
       # 6️⃣ Build da imagem Docker
       - name: Build Docker image
@@ -48,6 +51,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 8️⃣ Push da imagem para Docker Hub
+      # 8️⃣ Push da imagem Docker
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/java-app:latest
+
+      # 9️⃣ Deploy no servidor via SSH
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /caminho/do/projeto/no/servidor
+            # Atualizar JAR
+            cp /tmp/Main.jar ./Main.jar
+            # Parar app antigo
+            pkill -f Main.jar || true
+            # Rodar novo JAR em background
+            nohup java -cp Main.jar Main > app.log 2>&1 &
